@@ -1,8 +1,11 @@
 ﻿
 
 using DeliverMe;
-// DI: choose the data source here
-IMenuRepository menuRepository = new InMemoryMenuRepository();
+// IMenuRepository menuRepository = new InMemoryMenuRepository(); this is th eold line
+const string connectionString =
+    "Server=localhost;Database=DeliverMe;Trusted_Connection=True;TrustServerCertificate=True";
+
+IMenuRepository menuRepository = new AdoMenuRepository(connectionString);   // new: SQL Server
 var menuService = new MenuService(menuRepository);// here we inject menuReposto the service 
 
 var burger = menuService.FindByName("Classic Burger");
