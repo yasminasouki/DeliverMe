@@ -1,5 +1,6 @@
 ﻿namespace DeliverMe;
 
+// C3: the contract every discount must follow
 public interface IDiscountPolicy
 {
     decimal Apply(decimal subtotal);
