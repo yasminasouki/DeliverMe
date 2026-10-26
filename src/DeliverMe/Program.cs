@@ -1,12 +1,20 @@
 ﻿
 
 using DeliverMe;
-// IMenuRepository menuRepository = new InMemoryMenuRepository(); this is th eold line
+using Microsoft.Extensions.DependencyInjection;
+// IMenuRepository menuRepository = new InMemoryMenuRepository(); this is th old line
 const string connectionString =
     "Server=localhost;Database=DeliverMe;Trusted_Connection=True;TrustServerCertificate=True";
+// register tell the container which class goes with each type, and its lifetime
+var services = new ServiceCollection();
+services.AddSingleton<IMenuRepository>(_ => new AdoMenuRepository(connectionString));
+services.AddTransient<MenuService>();
 
-IMenuRepository menuRepository = new AdoMenuRepository(connectionString);   // new: SQL Server
-var menuService = new MenuService(menuRepository);// here we inject menuReposto the service 
+// 2. BUILD the container
+using var provider = services.BuildServiceProvider();
+//inject them through the container
+var menuService = provider.GetRequiredService<MenuService>();
+
 
 var burger = menuService.FindByName("Classic Burger");
 var fries = menuService.FindByName("Fries");
@@ -100,7 +108,16 @@ Console.WriteLine($"DI Items under 5.00: {menuService.CheaperThan(5m).Count}");
 
 try { menuService.FindByName("Pizza"); }
 catch (ArgumentException ex) { Console.WriteLine($"DI {ex.Message}"); }
-//
+
+//Di containers lifetimes
+
+var s1 = provider.GetRequiredService<MenuService>();
+var s2 = provider.GetRequiredService<MenuService>();
+var r1 = provider.GetRequiredService<IMenuRepository>();
+var r2 = provider.GetRequiredService<IMenuRepository>();
+
+Console.WriteLine($"DI Transient MenuService, same object? {ReferenceEquals(s1, s2)}");
+Console.WriteLine($"DI Singleton IMenuRepository, same object? {ReferenceEquals(r1, r2)}");
 void Checkout(Order order, decimal walletBalance)
 {
     ArgumentNullException.ThrowIfNull(order);
